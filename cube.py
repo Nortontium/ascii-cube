@@ -129,9 +129,54 @@ def draw_cube(stdscr, vertices):
             
         
 
+def draw_cube_edges(stdscr, vertices):
+    """Draw only the edges of the cube in terminal"""
+    # Define edges by connecting vertices
+    edges = [
+        (0, 1), (1, 2), (2, 3), (3, 0),  # front face
+        (4, 5), (5, 6), (6, 7), (7, 4),  # back face
+        (0, 4), (1, 5), (2, 6), (3, 7)   # connecting edges
+    ]
+
+    # Draw each edge
+    for edge in edges:
+        first_vertex = vertices[edge[0]]
+        second_vertex = vertices[edge[1]]
+        
+        # Project vertices
+        x0, y0 = project(*first_vertex)
+        x1, y1 = project(*second_vertex)
+        
+        # Draw the line using Bresenham's algorithm
+        points = get_line_points(x0, y0, x1, y1)
+        for x, y in points:
+            try:
+                stdscr.addstr(y, x, '#')
+            except curses.error:
+                pass
+
 def main(stdscr):
     # Hide cursor
     curses.curs_set(False)
+
+    # Get user input for display mode
+    stdscr.clear()
+    stdscr.addstr(0, 0, "Choose display mode:")
+    stdscr.addstr(1, 0, "1. Filled cube")
+    stdscr.addstr(2, 0, "2. Edges only")
+    stdscr.addstr(3, 0, "Enter your choice (1 or 2): ")
+    stdscr.refresh()
+    
+    while True:
+        choice = stdscr.getch()
+        if choice in [ord('1'), ord('2')]:
+            break
+    
+    display_mode = 'filled' if choice == ord('1') else 'edges'
+    
+    # Clear the screen after choice
+    stdscr.clear()
+    stdscr.refresh()
 
     # Define cube dimensions (even numbers only!)
     width = 4
@@ -166,7 +211,12 @@ def main(stdscr):
         for vertex in vertices:
             rotated_vertex = rotate(x_angle, y_angle, z_angle, *vertex)
             rotated_vertices.append(rotated_vertex)
-        draw_cube(stdscr, rotated_vertices)
+        
+        if display_mode == 'filled':
+            draw_cube(stdscr, rotated_vertices)
+        else:
+            draw_cube_edges(stdscr, rotated_vertices)
+            
         stdscr.refresh()
 
         # Increasing angles
